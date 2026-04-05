@@ -83,7 +83,7 @@ def build():
     ))
 
     cells.append(code(
-        "!pip install -q torch tokenizers tqdm numpy datasets\n"
+        "!pip install -q torch tokenizers tqdm numpy datasets huggingface_hub\n"
         "\n"
         "import torch\n"
         "print(f'PyTorch {torch.__version__}')\n"
@@ -287,21 +287,52 @@ def build():
     ))
 
     # ══════════════════════════════════════════════════════════════════
-    #  7. DOWNLOAD
+    #  7. UPLOAD TO HUGGINGFACE
     # ══════════════════════════════════════════════════════════════════
 
     cells.append(md(
-        "## 7. Download\n"
+        "## 7. Upload to HuggingFace\n"
         "\n"
-        "Package the trained model for local use.\n"
+        "Push the trained model to HuggingFace Hub.\n"
+        "Set your token and repo below."
+    ))
+
+    cells.append(code(
+        "from huggingface_hub import HfApi, login\n"
+        "import os\n"
         "\n"
-        "```python\n"
-        "# Run locally after downloading:\n"
-        "from inference import GuppyInference\n"
-        "engine = GuppyInference('checkpoints/best_model.pt', 'data/tokenizer.json')\n"
-        "r = engine.chat_completion([{'role': 'user', 'content': 'hi guppy'}])\n"
-        "print(r['choices'][0]['message']['content'])\n"
-        "```"
+        "HF_TOKEN = ''  # Paste your HF token here\n"
+        "HF_REPO = 'arman-bd/guppylm-9M'  # Change to your repo\n"
+        "\n"
+        "if not HF_TOKEN:\n"
+        "    print('Set HF_TOKEN above to upload. Skipping.')\n"
+        "else:\n"
+        "    login(token=HF_TOKEN)\n"
+        "    api = HfApi()\n"
+        "    api.create_repo(HF_REPO, exist_ok=True)\n"
+        "\n"
+        "    # Upload model checkpoint, tokenizer, and source files\n"
+        "    for path in ['checkpoints/best_model.pt', 'checkpoints/config.json',\n"
+        "                 'data/tokenizer.json', 'model.py', 'config.py', 'inference.py']:\n"
+        "        if os.path.exists(path):\n"
+        "            api.upload_file(\n"
+        "                path_or_fileobj=path,\n"
+        "                path_in_repo=path,\n"
+        "                repo_id=HF_REPO,\n"
+        "            )\n"
+        "            print(f'  Uploaded {path}')\n"
+        "\n"
+        "    print(f'\\nDone! https://huggingface.co/{HF_REPO}')"
+    ))
+
+    # ══════════════════════════════════════════════════════════════════
+    #  8. DOWNLOAD
+    # ══════════════════════════════════════════════════════════════════
+
+    cells.append(md(
+        "## 8. Download\n"
+        "\n"
+        "Or download the model locally as a tar.gz."
     ))
 
     cells.append(code(
@@ -330,7 +361,7 @@ def build():
     return {
         "nbformat": 4, "nbformat_minor": 0,
         "metadata": {
-            "colab": {"provenance": [], "gpuType": "T4", "name": "GuppyLM — Train a Fish"},
+            "colab": {"provenance": [], "gpuType": "T4", "name": "GuppyLM — Train"},
             "kernelspec": {"name": "python3", "display_name": "Python 3"},
             "language_info": {"name": "python"},
             "accelerator": "GPU",
@@ -339,11 +370,161 @@ def build():
     }
 
 
-if __name__ == "__main__":
-    nb = build()
-    out = os.path.join(PROJECT_ROOT, "guppy_colab.ipynb")
+def build_use():
+    """Build the use_guppylm notebook — download model from HF and chat."""
+    cells = []
+
+    cells.append(md(
+        "# GuppyLM — Chat with a Fish\n"
+        "\n"
+        "Download the pre-trained GuppyLM model from HuggingFace and chat with it.\n"
+        "No training needed — just run all cells.\n"
+        "\n"
+        "**Model:** [arman-bd/guppylm-9M](https://huggingface.co/arman-bd/guppylm-9M) (8.7M params)"
+    ))
+
+    # ── Setup ──────────────────────────────────────────────────────
+
+    cells.append(md("## 1. Setup"))
+
+    cells.append(code(
+        "!pip install -q torch tokenizers huggingface_hub\n"
+        "\n"
+        "import torch\n"
+        "print(f'PyTorch {torch.__version__}')\n"
+        "print(f'CUDA: {torch.cuda.is_available()}')"
+    ))
+
+    cells.append(code(
+        "import os, shutil\n"
+        "if os.path.exists('/content/guppy'):\n"
+        "    shutil.rmtree('/content/guppy')\n"
+        "os.makedirs('/content/guppy')\n"
+        "os.chdir('/content/guppy')\n"
+        "print(f'Working dir: {os.getcwd()}')"
+    ))
+
+    # ── Download model ─────────────────────────────────────────────
+
+    cells.append(md(
+        "## 2. Download Model\n"
+        "\n"
+        "Download the pre-trained model, tokenizer, and inference code from HuggingFace."
+    ))
+
+    cells.append(code(
+        "from huggingface_hub import hf_hub_download\n"
+        "import os\n"
+        "\n"
+        "HF_REPO = 'arman-bd/guppylm-9M'\n"
+        "\n"
+        "files = [\n"
+        "    ('checkpoints/best_model.pt', 'checkpoints'),\n"
+        "    ('checkpoints/config.json', 'checkpoints'),\n"
+        "    ('data/tokenizer.json', 'data'),\n"
+        "    ('model.py', '.'),\n"
+        "    ('config.py', '.'),\n"
+        "    ('inference.py', '.'),\n"
+        "]\n"
+        "\n"
+        "for filename, subdir in files:\n"
+        "    os.makedirs(subdir, exist_ok=True)\n"
+        "    hf_hub_download(\n"
+        "        repo_id=HF_REPO,\n"
+        "        filename=filename,\n"
+        "        local_dir='.',\n"
+        "    )\n"
+        "    print(f'  Downloaded {filename}')\n"
+        "\n"
+        "print(f'\\nModel ready from {HF_REPO}')"
+    ))
+
+    # ── Chat ───────────────────────────────────────────────────────
+
+    cells.append(md(
+        "## 3. Chat\n"
+        "\n"
+        "Talk to Guppy. Each message is independent (single-turn)."
+    ))
+
+    cells.append(code(
+        "from inference import GuppyInference\n"
+        "import torch\n"
+        "\n"
+        "engine = GuppyInference(\n"
+        "    'checkpoints/best_model.pt', 'data/tokenizer.json',\n"
+        "    device='cuda' if torch.cuda.is_available() else 'cpu'\n"
+        ")\n"
+        "\n"
+        "def chat(prompt):\n"
+        "    r = engine.chat_completion([{'role': 'user', 'content': prompt}], max_tokens=64)\n"
+        "    return r['choices'][0]['message'].get('content', '').strip()"
+    ))
+
+    cells.append(code(
+        "# Try different topics\n"
+        "tests = [\n"
+        "    'hi guppy',\n"
+        "    'are you hungry',\n"
+        "    'it is really hot today',\n"
+        "    'do you like bubbles',\n"
+        "    'what is the meaning of life',\n"
+        "    'tell me a joke',\n"
+        "    'the cat is looking at you',\n"
+        "    'do you love me',\n"
+        "    'what is the internet',\n"
+        "    'goodnight guppy',\n"
+        "]\n"
+        "\n"
+        "for prompt in tests:\n"
+        "    reply = chat(prompt)\n"
+        "    print(f'You> {prompt}')\n"
+        "    print(f'Guppy> {reply}')\n"
+        "    print()"
+    ))
+
+    cells.append(md(
+        "## 4. Interactive Chat\n"
+        "\n"
+        "Type your own messages. Type `quit` to stop."
+    ))
+
+    cells.append(code(
+        "print('Chat with Guppy (type quit to stop)')\n"
+        "print('=' * 40)\n"
+        "while True:\n"
+        "    try:\n"
+        "        prompt = input('You> ').strip()\n"
+        "    except (KeyboardInterrupt, EOFError):\n"
+        "        break\n"
+        "    if not prompt or prompt.lower() in ('quit', 'exit', 'q'):\n"
+        "        print('Guppy> bye. i will continue being a fish.')\n"
+        "        break\n"
+        "    reply = chat(prompt)\n"
+        "    print(f'Guppy> {reply}')\n"
+        "    print()"
+    ))
+
+    return {
+        "nbformat": 4, "nbformat_minor": 0,
+        "metadata": {
+            "colab": {"provenance": [], "name": "GuppyLM — Chat"},
+            "kernelspec": {"name": "python3", "display_name": "Python 3"},
+            "language_info": {"name": "python"},
+        },
+        "cells": cells,
+    }
+
+
+def write_notebook(nb, filename):
+    out = os.path.join(PROJECT_ROOT, filename)
     with open(out, "w") as f:
         json.dump(nb, f, indent=1)
     n = len(nb["cells"])
     sz = os.path.getsize(out) / 1024
     print(f"Generated {out}: {n} cells, {sz:.1f} KB")
+
+
+if __name__ == "__main__":
+    write_notebook(build(), "train_guppylm.ipynb")
+    write_notebook(build_use(), "use_guppylm.ipynb")

@@ -8,7 +8,8 @@
 <p align="center">
   <a href="https://huggingface.co/datasets/arman-bd/guppylm-60k-generic"><img src="https://img.shields.io/badge/🤗_Dataset-guppylm--60k-blue" alt="Dataset"/></a>&nbsp;
   <a href="https://huggingface.co/arman-bd/guppylm-9M"><img src="https://img.shields.io/badge/🤗_Model-guppylm--9M-orange" alt="Model"/></a>&nbsp;
-  <a href="https://colab.research.google.com/github/arman-bd/guppylm/blob/main/guppy_colab.ipynb"><img src="https://img.shields.io/badge/Open_in-Colab-F9AB00?logo=googlecolab" alt="Colab"/></a>&nbsp;
+  <a href="https://colab.research.google.com/github/arman-bd/guppylm/blob/main/train_guppylm.ipynb"><img src="https://img.shields.io/badge/Train_in-Colab-F9AB00?logo=googlecolab" alt="Train"/></a>&nbsp;
+  <a href="https://colab.research.google.com/github/arman-bd/guppylm/blob/main/use_guppylm.ipynb"><img src="https://img.shields.io/badge/Chat_in-Colab-F9AB00?logo=googlecolab" alt="Chat"/></a>&nbsp;
   <a href="https://github.com/arman-bd/guppylm/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green" alt="License"/></a>
 </p>
 
@@ -88,12 +89,19 @@ Guppy:
 
 ## Quick Start
 
-### Train on Colab
+### Chat with Guppy (no training needed)
 
-1. Upload [`guppy_colab.ipynb`](guppy_colab.ipynb) to [Google Colab](https://colab.research.google.com)
-2. Set runtime to **T4 GPU**
-3. **Run all cells** — downloads dataset, trains tokenizer, trains model, tests it
-4. Download the trained model (~35 MB)
+[![Open in Colab](https://img.shields.io/badge/Chat_in-Colab-F9AB00?logo=googlecolab)](https://colab.research.google.com/github/arman-bd/guppylm/blob/main/use_guppylm.ipynb)
+
+Downloads the pre-trained model from HuggingFace and lets you chat. Just run all cells.
+
+### Train your own
+
+[![Open in Colab](https://img.shields.io/badge/Train_in-Colab-F9AB00?logo=googlecolab)](https://colab.research.google.com/github/arman-bd/guppylm/blob/main/train_guppylm.ipynb)
+
+1. Set runtime to **T4 GPU**
+2. **Run all cells** — downloads dataset, trains tokenizer, trains model, tests it
+3. Upload to HuggingFace or download locally
 
 ### Chat locally
 
